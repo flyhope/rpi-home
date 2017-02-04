@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO
 import time
 
 ''' 结构体 '''
-class Struct:
+class Struct :
     data = []
     temperature = 0
     temperature_point = 0
@@ -31,55 +31,63 @@ class Struct:
             self.temperature_point += temperature_point_bit[i] * 2 ** (7-i)
             self.check += check_bit[i] * 2 ** (7-i)
 
+        self.temperature_show = self.temperature
+        self.humidity_show = self.humidity
+
         tmp = self.humidity + self.humidity_point + self.temperature + self.temperature_point
         self.right = (self.check == tmp)
 
+    def __repr__(self):
+        return str(self.__dict__)
+
 
 ''' 传感器异常 '''
-class SesorError(Exception)
+class SesorError(Exception) :
     pass
 
 ''' 核心处理方法 '''
-class Dht11:
+class Dht11 :
     channel = 4
 
     ''' 构建方法 '''
-    def __init__(self, channel):
+    def __init__(self, channel) :
         self.channel = channel
 
-    def show(self, repeat = 0):
+    def show(self, repeat = 0) :
         i = 0
-        while (i <= repeat)
+        while (i <= repeat) :
+            i += 1
             result = self._fetch()
-            if (result.right)
-                break;
-            i++
+            if (result.right) :
+                break
 
-        if (!result.right)
+        if (result.right == False) :
             raise SesorError("sensor return wrong data")
+
+        return result
 
     ''' 核心获取数据方法 '''
     def _fetch(self):
         data = []
         j = 0
         GPIO.setmode(GPIO.BCM)
-
-        GPIO.setup(channel, GPIO.OUT)
-        GPIO.output(channel, GPIO.LOW)
+        time.sleep(1)
+        GPIO.setup(self.channel, GPIO.OUT)
+        GPIO.output(self.channel, GPIO.LOW)
         time.sleep(0.02)
-        GPIO.output(channel, GPIO.HIGH)
-        GPIO.setup(channel, GPIO.IN)
+        GPIO.output(self.channel, GPIO.HIGH)
+        GPIO.setup(self.channel, GPIO.IN)
 
-        while GPIO.input(channel) == GPIO.LOW:
+        while GPIO.input(self.channel) == GPIO.LOW:
             continue
-        while GPIO.input(channel) == GPIO.HIGH:
+        while GPIO.input(self.channel) == GPIO.HIGH:
             continue
 
         while j < 40:
             k = 0
-            while GPIO.input(channel) == GPIO.LOW:
+            while GPIO.input(self.channel) == GPIO.LOW:
                 continue
-            while GPIO.input(channel) == GPIO.HIGH:
+            while GPIO.input(self.channel) == GPIO.HIGH:
                 k += 1
                 if k > 100:
                     break
