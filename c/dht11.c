@@ -1,0 +1,101 @@
+/*
+ *  dht11.c:
+ *      Simple test program to test the wiringPi functions
+ *      DHT11 test
+ */
+
+#include <wiringPi.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#define MAXTIMINGS      85
+#define DHTPIN    7
+
+// dht11 结构体
+struct dht11 {
+    int humidity;
+    int humidity_point;
+    int temperature;
+    int temperature_point;
+    int success;
+};
+
+struct dht11 read_dht11_dat() {
+    uint8_t laststate       = HIGH;
+    uint8_t counter  = 0;
+    uint8_t j          = 0, i;
+    int dht11_dat[5] = { 0, 0, 0, 0, 0 };
+    struct dht11 data;
+
+    dht11_dat[0] = dht11_dat[1] = dht11_dat[2] = dht11_dat[3] = dht11_dat[4] = 0;
+
+    /* pull pin down for 18 milliseconds */
+    pinMode( DHTPIN, OUTPUT );
+    digitalWrite( DHTPIN, LOW );
+    delay( 18 );
+    /* then pull it up for 40 microseconds */
+    digitalWrite( DHTPIN, HIGH );
+    delayMicroseconds( 40 );
+    /* prepare to read the pin */
+    pinMode( DHTPIN, INPUT );
+
+    /* detect change and read data */
+    for ( i = 0; i < MAXTIMINGS; i++ ) {
+        counter = 0;
+        while ( digitalRead( DHTPIN ) == laststate ) {
+            counter++;
+            delayMicroseconds( 1 );
+            if ( counter == 255 ) {
+                break;
+            }
+        }
+        laststate = digitalRead( DHTPIN );
+
+        if ( counter == 255 )
+            break;
+
+        /* ignore first 3 transitions */
+        if ( (i >= 4) && (i % 2 == 0) ) {
+            /* shove each bit into the storage bytes */
+            dht11_dat[j / 8] <<= 1;
+            if ( counter > 16 )
+                dht11_dat[j / 8] |= 1;
+            j++;
+        }
+    }
+
+    /*
+     * check we read 40 bits (8bit x 5 ) + verify checksum in the last byte
+     * print it out if data is good
+     */
+    if ( (j >= 40) && (dht11_dat[4] == ( (dht11_dat[0] + dht11_dat[1] + dht11_dat[2] + dht11_dat[3]) & 0xFF) ) ) {
+        data.humidity = dht11_dat[0];
+        data.humidity_point = dht11_dat[1];
+        data.temperature = dht11_dat[2];
+        data.temperature_point = dht11_dat[3];
+        data.success = 1;
+    } else {
+    }
+    return data;
+}
+
+int main( void ) {
+    struct dht11 data;
+    printf( "Raspberry Pi wiringPi DHT11 Temperature test program\n" );
+
+    if ( wiringPiSetup() == -1 ) {
+        exit( 1 );
+    }
+
+    while ( 1 ) {
+        data = read_dht11_dat();
+        if (data.success) {
+            printf("Humidity = %d, Temperature = %d\n", data.humidity, data.temperature);
+        }
+        printf("ok\n");
+        delay( 1000 ); /* wait 1sec to refresh */
+    }
+
+    return(0);
+}
