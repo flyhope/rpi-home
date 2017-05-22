@@ -20,7 +20,7 @@
 #define MAXDATASIZE 100
 
 // 写入数据
-short carbon_write(char *key[], float value, unsigned int time) {
+short carbon_write(char key[], float value, unsigned int time) {
 	int sockfd, num;
 	char buf[MAXDATASIZE];    /* buf will store received text */
 	struct hostent *he;
@@ -28,6 +28,11 @@ short carbon_write(char *key[], float value, unsigned int time) {
 
     if((sockfd=socket(AF_INET,SOCK_STREAM, 0))==-1) {
         return -1;
+    }
+
+    if((he=gethostbyname("localhost")) == NULL) {
+        printf("gethostbyname() error\n");
+        exit(1);
     }
 
     bzero(&server,sizeof(server));
@@ -38,12 +43,19 @@ short carbon_write(char *key[], float value, unsigned int time) {
 	   return -2;
 	}
 
-	char str[];
+	char *value_string = "";
+	sprintf(value_string, "%f", value);
+
+	char time_str[20];
+	sprintf(time_str, "%d", time);
+
+	int str_length = strlen(key) + strlen(value_string) + strlen(time_str) + 2;
+	char str[str_length];
 	strcpy(str, key);
 	strcat(str, " ");
-	strcat(str, value);
+	strcat(str, value_string);
 	strcat(str, " ");
-	stract(str, time);
+	strcat(str, time_str);
 
     if((num=send(sockfd,str,sizeof(str),0))==-1) {
         return -3;

@@ -5,6 +5,8 @@
  *      Author: 李枨煊
  */
 #include "dht11.c"
+#include "carbon.c"
+#include <time.h>
 
 int main( void ) {
     struct dht11 data;
@@ -14,15 +16,17 @@ int main( void ) {
         exit( 1 );
     }
 
-    while ( 1 ) {
-        data = dht11_show(7, 100);
-        if (data.success) {
-            printf("Humidity = %d, Temperature = %d\n", data.humidity, data.temperature);
-        }
-        printf("ok\n");
-        delay( 1000 ); /* wait 1sec to refresh */
-    }
+    // 获取当前日期时间
+    time_t t;
+    int timestamp;
+    timestamp = time(&t);
 
+	data = dht11_show(7, 100);
+	if (data.success) {
+		printf("Humidity = %d, Temperature = %d\n", data.humidity, data.temperature);
+		carbon_write("home_env.humidity", data.humidity, timestamp);
+	}
+	printf("OK%u\n");
     return(0);
 }
 
