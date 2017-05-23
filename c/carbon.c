@@ -15,52 +15,42 @@
 #include <netinet/in.h>
 #include <netdb.h>  /* netdb is necessary for struct hostent */
 
-#define PORT 2003  /* server port */
-
 #define MAXDATASIZE 100
 
 // 写入数据
-short carbon_write(char key[], float value, unsigned int time) {
+short carbon_write(char host[], int port, char key[], int value, unsigned int time) {
 	int sockfd, num;
-	char buf[MAXDATASIZE];    /* buf will store received text */
-	struct hostent *he;
 	struct sockaddr_in server;
 
     if((sockfd=socket(AF_INET,SOCK_STREAM, 0))==-1) {
         return -1;
     }
 
-    if((he=gethostbyname("localhost")) == NULL) {
-        printf("gethostbyname() error\n");
-        exit(1);
+
+    //解析域名，如果是IP则不用解析，如果出错，显示错误信息
+    struct hostent *nlp_host;
+    while ((nlp_host=gethostbyname(host))==0){
+        printf("Resolve Error!\n");
     }
 
     bzero(&server,sizeof(server));
 	server.sin_family = AF_INET;
-	server.sin_port = htons(PORT);
-	server.sin_addr = *((struct in_addr *)he->h_addr);
+	server.sin_port = htons(port);
+	server.sin_addr.s_addr=((struct in_addr *)(nlp_host->h_addr))->s_addr;
+
 	if(connect(sockfd, (struct sockaddr *)&server, sizeof(server))==-1) {
 	   return -2;
 	}
 
-	char *value_string = "";
-	sprintf(value_string, "%f", value);
+	char str[100];
+	sprintf(str, "%s %d %d\n", key, value, time);
+	printf("write:%s", str);
 
-	char time_str[20];
-	sprintf(time_str, "%d", time);
-
-	int str_length = strlen(key) + strlen(value_string) + strlen(time_str) + 2;
-	char str[str_length];
-	strcpy(str, key);
-	strcat(str, " ");
-	strcat(str, value_string);
-	strcat(str, " ");
-	strcat(str, time_str);
-
-    if((num=send(sockfd,str,sizeof(str),0))==-1) {
+	// 发送数据
+    if((num=send(sockfd,str,sizeof(str),0)) == -1) {
         return -3;
     }
 
-    buf[num-1]='\0';
+    close(sockfd);
     return 1;
 }
