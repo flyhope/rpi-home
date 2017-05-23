@@ -2,6 +2,8 @@
 
 通过dht11传感器采集温度与湿度，并将数据写入graphite carbon中，可在graphite中查看数据
 
+支持树莓派、香橙派
+
 ## 依赖
 
 * libpthread

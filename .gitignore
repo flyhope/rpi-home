@@ -1,4 +1,2 @@
 /sftp-config.json
-/c/.project
-/c/.cproject
-/c/.settings
+.*
