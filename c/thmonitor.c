@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <getopt.h>
+#include <wiringPi.h>
 #include "dht11.c"
 #include "carbon.c"
 #include "help.c"
