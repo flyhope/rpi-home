@@ -29,11 +29,11 @@ while (True) :
         client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
         result = client.write_points([{
             "measurement": INFLUX_TABLE_TEMPERATURE,
-            "fields": {"value": str(th.temperature_show)}
+            "fields": {"value": th.temperature_show}
         },
         {
             "measurement": INFLUX_TABLE_HUMIDITY,
-            "fields": {"value": str(th.humidity_show)}
+            "fields": {"value": th.humidity_show}
         }])
         print("write: %s" % result)
 
