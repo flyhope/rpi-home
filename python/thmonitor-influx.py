@@ -26,16 +26,19 @@ while (True) :
         timestamp = int(time.time())
         th = sensor_dht11.show(10)
 
-        client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
-        result = client.write_points([{
-            "measurement": INFLUX_TABLE_TEMPERATURE,
-            "fields": {"value": th.temperature_show}
-        },
-        {
-            "measurement": INFLUX_TABLE_HUMIDITY,
-            "fields": {"value": th.humidity_show}
-        }])
-        print("write: %s" % result)
+        if th.temperature_show and th.humidity_show :
+            client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
+            result = client.write_points([{
+                "measurement": INFLUX_TABLE_TEMPERATURE,
+                "fields": {"value": th.temperature_show}
+            },
+            {
+                "measurement": INFLUX_TABLE_HUMIDITY,
+                "fields": {"value": th.humidity_show}
+            }])
+            print("Write: %s" % result)
+        else :
+            print("Empty")
 
     except Exception as e:
         print(e)
